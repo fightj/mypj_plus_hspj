@@ -1,17 +1,9 @@
-{% extends "base2.html" %}
+{% extends "accounts/base.html" %}
 {% block content %}
 <div class="row mt-5">
   <div class="col-12">
     <table class="table">
       <thead class="thead-dark">
-        <tr>
-          <th scope="col">#</th>
-          <th scope="col">이미지</th>
-          <th scope="col">제목</th>
-          <th scope="col">아이디</th>
-          <th scope="col">작성일</th>
-          <th scope="col">최종수정일</th>
-        </tr>
       </thead>
         <!-- jQuery 라이브러리 추가 -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -37,33 +29,35 @@
       <div class="row mt-5" style="margin:auto; display: block;">
   <div class="navbar-row" >
           <div class="navbar-name">
-              <a class="navbar-brand" href="/" style="font-size: 36px; color:blue; margin: auto; font-family: Gilroy; font-weight: bold; padding: 0;">
+              <a class="navbar-brand" href="/board/list/" style="font-size: 36px; color:blue; margin: auto; font-family: Gilroy; font-weight: bold; padding: 0;">
                 Sinabro
                 </a>
 
             <div class="util" >
               {% if user.is_authenticated %}
-              <button type="button" class="btn " style="font-weight: bold; float:right;" onclick="location.href='/auth/logout/'">로그아웃</button>
+              <button type="button" class="btn " style="font-weight: bold; float:right; margin: 23px 15px;" onclick="location.href='/auth/logout/'">로그아웃</button>
+              <button type="button" class="btn "  style="margin: 23px 15px; float:right;    " onclick="location.href='/board/list'">My Page</button>
+              <button type="button" class="btn "  style="margin: 25px 25px 25px 230px; " onclick="location.href='/board/post/'">게시글</button>
+              <button type="button" class="btn "  style="margin: 25px 20px;" onclick="location.href='/board/list'">포트폴리오</button>
               {% else %}
               <button type="button" class="btn " style=" margin: 23px 15px; font-weight: bold; float:right;" onclick="location.href='/auth/login/'">로그인</button>
-              <button type="button" class="btn "  style="margin: 25px 25px 25px 230px; " onclick="location.href='/board/list/'">게시글</button>
-              <button type="button" class="btn "  style="margin: 25px 20px;" onclick="location.href='/'">포트폴리오</button>
-              <button type="button" class="btn " style=" margin: 23px 15px; font-weight: bold; float:right;" onclick="location.href='/member/register/'">회원가입</button>
+              <button type="button" class="btn "  style="margin: 25px 25px 25px 230px; " onclick="location.href='/board/post/'">게시글</button>
+              <button type="button" class="btn "  style="margin: 25px 20px;" onclick="location.href='/board/list'">포트폴리오</button>
+              <button type="button" class="btn " style=" margin: 23px 15px; font-weight: bold; float:right;" onclick="location.href='/auth/register/'">회원가입</button>
+              {% endif %}
             </div>
           </div>
   </div>
     <section class="search" style="padding: 10px 10px 0 10px">
-        <div class="warp">
-            <form>
-            <div style="position:relative; display:inline-block; left: 400px">
-                <input type="search" style="height: 30px; width: 350px; padding: 15px 48px 15px 21px; border-radius: 20px;" name="search-keyword" class="search-keyword" placeholder="검색" autocomplete="off">
-                <input type="submit" style="position: absolute; right: 0; top: 0; width: 35px; height: 35px; border: none; color: transparent; background: transparent url(/media/images/filter.search.png) no-repeat center center; background-size: 24px 24px; " class="submit">
-            </div>
+        <div class="warp" style="position:relative; display:inline-block; left: 400px">
+            <form action="{% url 'search' %}" method="GET">
+                <input type="text" style="margin:auto; display:block; height: 30px; width: 350px; padding: 15px 48px 15px 21px; border-radius: 20px; " name="keyword" class="search-keyword" placeholder="검색" autocomplete="off">
+                <input type="submit" style="position: absolute; right: 0px; top: 15px; width: 35px; height: 35px; border: none; color: transparent; background: transparent url(/media/images/filter.search.png) no-repeat center center; background-size: 24px 24px; " class="submit">
             </form>
         </div>
     </section>
 </div>
-{% endif %}<br>
+<br>
 
                 <!-- Carousel 컨테이너 -->
         <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
@@ -96,21 +90,51 @@
           </a>
         </div>
 
+      <style>
+        .card {
+          width: 300px;
+          height: 400px;
+        }
+    </style>
 
-        {% for board in boards %}
-        <tr onclick="location.href='/board/detail/{{ board.id }}/'">
-          <th scope="row">{{ board.id }}</th>
-            {% if board.image %}
-                <td><img src="{{ board.image.url }}" width="100" alt="{{ board.title }}"></td>
-            {% else %}
-                 <td><img src="/static/images/no_image.png" width="100" alt="no image"></td>
-            {% endif %}
-          <td>{{ board.title }}</td>
-          <td>{{ board.writer }}</td>
-          <td>{{ board.created_at }}</td>
-          <td>{{ board.updated_at }}</td>
-        </tr>
+     <div id="carouselExampleControls" class="carousel slide" data-ride="carousel">
+      <div class="carousel-inner">
+        {% for popular_board in popular_boards %}
+          {% if forloop.first or forloop.counter0|divisibleby:3 %}
+          <div class="carousel-item {% if forloop.first %}active{% endif %}">
+            <div class="row">
+          {% endif %}
+              <div class="col-md-4">
+                <div class="card mb-4">
+                  {% if popular_board.image %}
+                  <img class="card-img-top" src="{{ popular_board.image.url }}" alt="{{ popular_board.title }}"  style="width: 200px; height: 200px; object-fit: cover;">
+                  {% else %}
+                  <img class="card-img-top" src="/static/images/no_image.png" alt="no image">
+                  {% endif %}
+                  <div class="card-body">
+                    <h5 class="card-title">{{ popular_board.title }}</h5>
+                    <p class="card-text">{{ popular_board.writer }}</p>
+                    <a href="/board/detail/{{ popular_board.id }}/" class="btn btn-primary">자세히 보기</a>
+                    <p>조회수: {{ popular_board.get_hit_count }}</p>
+                  </div>
+                </div>
+              </div>
+          {% if forloop.last or forloop.counter0|add:1|divisibleby:3 %}
+            </div>
+          </div>
+          {% endif %}
         {% endfor %}
+      </div>
+      <a class="carousel-control-prev" href="#carouselExampleControls" role="button" data-slide="prev">
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="sr-only">Previous</span>
+      </a>
+      <a class="carousel-control-next" href="#carouselExampleControls" role="button" data-slide="next">
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="sr-only">Next</span>
+      </a>
+    </div>
+
       </tbody>
     </table>
   </div>
@@ -146,11 +170,6 @@
         {% endif %}
       </ul>
     </nav>
-  </div>
-</div>
-<div class="row mt-2">
-  <div class="col-12">
-    <button type="button" class="btn btn-info btn-lg" onclick="location.href='/board/write/'">글쓰기</button>
   </div>
 </div>
 {% endblock %}

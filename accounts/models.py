@@ -6,10 +6,11 @@ class User(AbstractUser):
     created_at = models.DateTimeField(auto_now_add=True, verbose_name='가입날짜')
     updated_at = models.DateTimeField(auto_now=True, verbose_name='마지막수정일')
 
+    # related_name 속성 추가
+
 
     def __str__(self):
         return self.username
-
 
     class Meta:
         db_table = 'user'

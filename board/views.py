@@ -1,8 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
+from django.db.models import Q
+from hitcount.models import HitCount
 
 from accounts.models import User
+from chat.models import Room
 from .models import Board
 from .forms import BoardForm
 from django.core.paginator import Paginator
@@ -11,18 +14,27 @@ from django.core.paginator import Paginator
 def board_list(request):
     all_boards = Board.objects.all().order_by('-id')
     page = int(request.GET.get('p', 1))
-    pagenator = Paginator(all_boards, 2)
+    pagenator = Paginator(all_boards, 10)
     boards = pagenator.get_page(page)
     username = None
     if request.session.get('user'):
         user_id = request.session.get('user')
         username = User.objects.get(pk=user_id)
-    return render(request, 'board/board_list.html', {"boards":boards, 'username': username})
+
+    hit_counts = HitCount.objects.order_by('-hits')[:5]
+    board_ids = [hit_count.object_pk for hit_count in hit_counts]
+    popular_boards = Board.objects.filter(id__in=board_ids)
+
+    return render(request, 'board/board_list.html', {
+        "boards": boards,
+        "popular_boards": popular_boards,
+        'username': username
+    })
 
 @login_required
 def board_write(request):
     if request.method == "POST":
-        form = BoardForm(request.POST)
+        form = BoardForm(request.POST, request.FILES)
 
         if form.is_valid():
             # form의 모든 validators 호출 유효성 검증 수행
@@ -32,11 +44,10 @@ def board_write(request):
             board = Board()
             board.title = form.cleaned_data['title']
             board.contents = form.cleaned_data['contents']
-            # 검증에 성공한 값들은 사전타입으로 제공 (form.cleaned_data)
-            # 검증에 실패시 form.error 에 오류 정보를 저장
-
+            board.image = form.cleaned_data['image']
             board.writer = member
             board.save()
+
 
             return redirect('/board/list/')
 
@@ -50,6 +61,9 @@ def board_detail(request, pk):
         board = Board.objects.get(pk=pk)
     except Board.DoesNotExist:
         raise Http404('게시글을 찾을 수 없습니다.')
+
+    #board.views += 1  # 조회수 증가
+    #board.save()  # 변경된 조회수 저장
 
     username = None
     if request.session.get('user'):
@@ -95,3 +109,54 @@ def board_delete(request, pk):
 
     board.delete()
     return redirect('/board/list/')
+
+def search_view(request):
+    keyword = request.GET.get('keyword')
+
+    results = None
+    if keyword and len(keyword) >= 2:
+        results = Board.objects.filter(
+            Q(title__icontains=keyword) | Q(contents__icontains=keyword)
+        )
+
+    context = {
+        'results': results,
+        'keyword': keyword
+    }
+
+    return render(request, 'board/search.html', context)
+
+def board_posts(request):
+    all_boards = Board.objects.all().order_by('-id')
+    page = int(request.GET.get('p', 1))
+    pagenator = Paginator(all_boards, 10)
+    boards = pagenator.get_page(page)
+    username = None
+    if request.session.get('user'):
+        user_id = request.session.get('user')
+        username = User.objects.get(pk=user_id)
+
+    hit_counts = HitCount.objects.order_by('-hits')[:5]
+    board_ids = [hit_count.object_pk for hit_count in hit_counts]
+    popular_boards = Board.objects.filter(id__in=board_ids)
+
+    return render(request, 'board/board_post.html', {
+        "boards": boards,
+        "popular_boards": popular_boards,
+        'username': username
+    })
+
+@login_required
+def room_create(request):
+    if request.method == "POST":
+        room_name = request.POST["room_name"]
+        room_slug = request.POST["room_slug"]
+
+        # 중복 체크
+        if Room.objects.filter(slug=room_slug).exists():
+            return render(request, 'chat/create.html', {'error': 'Slug already exists'})
+
+        room = Room.objects.create(name=room_name, slug=room_slug)
+        return redirect(reverse('room', kwargs={'slug': room.slug}))
+    else:
+        return render(request, 'chat/create.html')

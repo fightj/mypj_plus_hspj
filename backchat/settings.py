@@ -22,6 +22,7 @@ INSTALLED_APPS = [
     "board",
     "accounts",
     "chat",
+    "hitcount",
 ]
 
 MIDDLEWARE = [
@@ -95,15 +96,17 @@ CHANNEL_LAYERS = {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     }
 }
+AUTH_USER_MODEL = 'accounts.User'
 
-AUTH_USER_MODEL = "accounts.User"
-LOGIN_REDIRECT_URL = "index"
-LOGIN_URL = "login"
+LOGOUT_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = "/rooms/"
+LOGIN_URL = "/login/"
 
 STATIC_URL = "/static/"
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
 ]
+
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
