@@ -45,6 +45,7 @@ def board_write(request):
             board.title = form.cleaned_data['title']
             board.contents = form.cleaned_data['contents']
             board.image = form.cleaned_data['image']
+            board.pw = form.cleaned_data['pw']
             board.writer = member
             board.save()
 

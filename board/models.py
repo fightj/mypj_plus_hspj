@@ -10,7 +10,7 @@ class Board(models.Model, HitCountMixin):
     updated_at  = models.DateTimeField(auto_now=True, verbose_name="최종수정일")
     image = models.ImageField(upload_to="images/", blank=True, null=True)
     views = models.IntegerField(default=0)
-
+    pw = models.CharField(max_length=4)
     hit_count_generic = GenericRelation(HitCount, object_id_field='object_pk',
                                         related_query_name='hit_count_generic_relation')
 

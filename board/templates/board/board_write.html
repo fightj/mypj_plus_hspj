@@ -13,7 +13,14 @@
           name="{{field.name}}"
           placeholder="{{ field.label }}"
         >{{ board.contents }}</textarea>
-
+        {% elif field.name == 'pw' %}
+        <input
+          type="{{ field.field.widget.input_type }}"
+          class="form-control"
+          id="{{ field.id_for_label }}"
+          placeholder="{{ field.label }}"
+          name="{{ field.name }}"
+        />
         {% else %}
         <input
           type="{{ field.field.widget.input_type }}"
@@ -24,14 +31,12 @@
           value="{{ board.title }}"
         />
         {% endif %}
+        {% if field.errors %}
+        <span style="color: red;">{{ field.errors }}</span>
+        {% endif %}
       </div>
-      {% if field.errors %}
-      <span style="color: red;">{{ field.errors }}</span>
-      {% endif %}
       {% endfor %}
-      <form method="post" class="post-form my-3" enctype="multipart/form-data">
       <button type="submit" class="btn btn-primary">글쓰기</button>
-    </form>
     </form>
   </div>
 </div>

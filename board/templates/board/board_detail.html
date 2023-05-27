@@ -4,13 +4,13 @@
 <div class="row mt-5">
   <div class="col-12">
     <div class="form-group">
-    <div>
-      {% if board.image %}
-        <img src="{{ board.image.url }}" alt="{{ board.title }}" width="200dp">
-      {% endif %}
-    </div>
+      <div>
+        {% if board.image %}
+          <img src="{{ board.image.url }}" alt="{{ board.title }}" width="200dp">
+        {% endif %}
+      </div>
 
-    <p>조회수: {{ board.get_hit_count }}</p>
+      <p>조회수: {{ board.get_hit_count }}</p>
       <label for="title">제목</label>
       <input
         type="text"
@@ -24,15 +24,37 @@
       <textarea class="form-control" readonly>{{ board.contents }}</textarea>
     </div>
     <button type="button" class="btn btn-primary" onclick="location.href='/board/list/'">돌아가기</button>
-      {% if user.username|stringformat:"s" == board.writer|stringformat:"s" %}
-        <div class="btn-group">
+
+    {% if user.username|stringformat:"s" == board.writer|stringformat:"s" %}
+      <div class="btn-group">
         <a href="{% url 'board_modify' board.pk %}" class="btn btn-danger">수정</a>
         <form id="delete-form" method="POST" action="{% url 'board_delete' pk=board.pk %}">
-            {% csrf_token %}
+          {% csrf_token %}
         </form>
         <a href="#" class="btn btn-danger" onclick="if(confirm('정말 삭제하시겠습니까?')){event.preventDefault(); document.getElementById('delete-form').submit();}">삭제</a>
       </div>
-  {% endif %}
+    {% endif %}
+
+    {% if board.chat_room %}
+      <div>
+        <h3>채팅방</h3>
+        {% if board.chat_room.pw %}
+          <form method="POST" action="{% url 'room' board.chat_room.slug %}">
+            {% csrf_token %}
+            <input type="password" name="pw" placeholder="비밀번호 입력" required>
+            <button type="submit" class="btn btn-primary">채팅방으로 이동</button>
+          </form>
+          {% if room_error %}
+            <p style="color: red;">{{ room_error }}</p>
+          {% endif %}
+        {% else %}
+          <p>채팅방 이름: {{ board.chat_room.name }}</p>
+          <button type="button" class="btn btn-primary" onclick="location.href='{% url 'room' board.chat_room.slug %}'">채팅방으로 이동</button>
+        {% endif %}
+      </div>
+    {% else %}
+      <p>채팅방이 없습니다.</p>
+    {% endif %}
   </div>
 </div>
 {% endblock %}

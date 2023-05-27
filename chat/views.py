@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.shortcuts import render, reverse, redirect
 from .models import Room, Message
 from django.shortcuts import get_object_or_404
+from board.models import Board
 @login_required
 def rooms(request):
     rooms = Room.objects.all()
@@ -12,15 +13,15 @@ def rooms(request):
 @login_required
 def room(request, slug):
     if request.method == 'POST':
-        room_slug = request.POST.get('slug')
-        if room_slug == slug:
-            room = get_object_or_404(Room, slug=slug)
+        room_pw = request.POST.get('pw')
+
+        room = get_object_or_404(Room, slug=slug)
+        if room_pw == room.pw:
             messages = Message.objects.filter(room=room).order_by('-id')[:50][::-1]
             return render(request, 'chat/room.html', {'room': room, 'messages': messages})
         else:
-            room = get_object_or_404(Room, slug=slug)
-            messages = Message.objects.filter(room=room).order_by('-id')[:50][::-1]
-            return render(request, 'chat/rooms.html', {'rooms': Room.objects.all(), 'error': 'Invalid slug'})
+            board = get_object_or_404(Board, chat_room=room)
+            return render(request, 'board/board_detail.html', {'board': board, 'room_error': '비밀번호가 올바르지 않습니다.'})
     else:
         room = get_object_or_404(Room, slug=slug)
         messages = Message.objects.filter(room=room).order_by('-id')[:50][::-1]

@@ -15,7 +15,7 @@
 
                 <form method="POST" action="{% url 'room' room.slug %}">
                     {% csrf_token %}
-                    <input type="text" name="slug" placeholder="Enter slug" required>
+                    <input type="text" name="pw" placeholder="Enter password" required>
                     <button type="submit" class="px-5 py-3 block rounded-xl text-white bg-teal-600 hover:bg-teal-700">Join</button>
                 </form>
             </div>
@@ -28,7 +28,7 @@
 <script>
     setTimeout(function() {
         window.location.href = "{% url 'rooms' %}";
-    }, ); // 초 후에 rooms 페이지로 이동
+    },3000 ); // 초 후에 rooms 페이지로 이동
 </script>
 {% endif %}
 
